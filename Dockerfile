@@ -1,6 +1,7 @@
-FROM apify/actor-node:20
+FROM apify/actor-node-puppeteer-chrome:20
 
-RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+# Playwright + Chromium dependencies already pre-installed in this image
+USER root
 
 WORKDIR /usr/src/app
 COPY requirements.txt .
