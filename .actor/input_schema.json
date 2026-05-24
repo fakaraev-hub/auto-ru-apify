@@ -7,6 +7,8 @@
       "title": "Mode",
       "type": "string",
       "description": "search, card, or monitor",
+      "enum": ["search", "card", "monitor"],
+      "editor": "select",
       "default": "search"
     },
     "searchUrl": {
