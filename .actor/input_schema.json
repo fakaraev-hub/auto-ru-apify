@@ -1,0 +1,71 @@
+{
+  "title": "Auto.ru Parser Config",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "enum": ["search", "card", "monitor"],
+      "default": "search"
+    },
+    "searchUrl": {
+      "title": "Search URL",
+      "type": "string",
+      "editor": "textfield"
+    },
+    "offerUrls": {
+      "title": "Offer URLs",
+      "type": "array",
+      "editor": "json",
+      "default": []
+    },
+    "brand": {
+      "title": "Brand",
+      "type": "string",
+      "default": ""
+    },
+    "model": {
+      "title": "Model",
+      "type": "string",
+      "default": ""
+    },
+    "priceMin": {
+      "title": "Min Price",
+      "type": "integer",
+      "default": 0
+    },
+    "priceMax": {
+      "title": "Max Price",
+      "type": "integer",
+      "default": 0
+    },
+    "yearMin": {
+      "title": "Min Year",
+      "type": "integer",
+      "default": 0
+    },
+    "yearMax": {
+      "title": "Max Year",
+      "type": "integer",
+      "default": 0
+    },
+    "city": {
+      "title": "City",
+      "type": "string",
+      "default": ""
+    },
+    "maxPages": {
+      "title": "Max Pages",
+      "type": "integer",
+      "default": 3
+    },
+    "proxyConfiguration": {
+      "title": "Proxy",
+      "type": "object",
+      "editor": "proxy",
+      "default": { "useApifyProxy": true }
+    }
+  },
+  "required": ["mode"]
+}

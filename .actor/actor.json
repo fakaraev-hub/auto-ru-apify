@@ -1,0 +1,10 @@
+{
+  "actorSpecification": 1,
+  "name": "auto-ru-parser",
+  "title": "Auto.ru Universal Parser",
+  "description": "Search listings, parse cards, monitor prices on auto.ru",
+  "version": "1.0",
+  "buildTag": "latest",
+  "input": "./input_schema.json",
+  "dockerfile": "./Dockerfile"
+}

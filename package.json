@@ -1,0 +1,11 @@
+{
+  "name": "auto-ru-parser",
+  "version": "1.0.0",
+  "description": "Universal auto.ru parser: search, card, monitoring",
+  "dependencies": {
+    "apify": "^3.2.0"
+  },
+  "scripts": {
+    "start": "node main.js"
+  }
+}
