@@ -63,7 +63,7 @@
     "proxyConfiguration": {
       "title": "Proxy",
       "type": "object",
-      "editor": "proxy",
+      "description": "Proxy config — set via Apify UI",
       "default": { "useApifyProxy": true }
     }
   },
