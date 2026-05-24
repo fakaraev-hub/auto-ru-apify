@@ -6,7 +6,7 @@
     "mode": {
       "title": "Mode",
       "type": "string",
-      "description": "search, card, or monitor",
+      "description": "search = search listings, card = parse single URL, monitor = track prices",
       "enum": ["search", "card", "monitor"],
       "editor": "select",
       "default": "search"
@@ -14,51 +14,61 @@
     "searchUrl": {
       "title": "Search URL",
       "type": "string",
+      "description": "Full auto.ru search URL (optional, overrides brand/model filters)",
       "default": ""
     },
     "offerUrls": {
       "title": "Offer URLs (comma-separated)",
       "type": "string",
+      "description": "List of auto.ru offer URLs for card or monitor mode",
       "default": ""
     },
     "brand": {
       "title": "Brand",
       "type": "string",
+      "description": "Car brand e.g. BMW",
       "default": ""
     },
     "model": {
       "title": "Model",
       "type": "string",
+      "description": "Car model e.g. X5",
       "default": ""
     },
     "priceMin": {
       "title": "Min Price",
       "type": "integer",
+      "description": "Minimum price in RUB",
       "default": 0
     },
     "priceMax": {
       "title": "Max Price",
       "type": "integer",
+      "description": "Maximum price in RUB",
       "default": 0
     },
     "yearMin": {
       "title": "Min Year",
       "type": "integer",
+      "description": "Minimum year e.g. 2020",
       "default": 0
     },
     "yearMax": {
       "title": "Max Year",
       "type": "integer",
+      "description": "Maximum year e.g. 2024",
       "default": 0
     },
     "city": {
       "title": "City",
       "type": "string",
+      "description": "City name or code",
       "default": ""
     },
     "maxPages": {
       "title": "Max Pages",
       "type": "integer",
+      "description": "How many search pages to scrape (max 10)",
       "default": 3
     }
   },
