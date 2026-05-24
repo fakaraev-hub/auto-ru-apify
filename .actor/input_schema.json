@@ -15,60 +15,70 @@
       "title": "Search URL",
       "type": "string",
       "description": "Full auto.ru search URL (optional, overrides brand/model filters)",
+      "editor": "textfield",
       "default": ""
     },
     "offerUrls": {
       "title": "Offer URLs (comma-separated)",
       "type": "string",
       "description": "List of auto.ru offer URLs for card or monitor mode",
+      "editor": "textarea",
       "default": ""
     },
     "brand": {
       "title": "Brand",
       "type": "string",
       "description": "Car brand e.g. BMW",
+      "editor": "textfield",
       "default": ""
     },
     "model": {
       "title": "Model",
       "type": "string",
       "description": "Car model e.g. X5",
+      "editor": "textfield",
       "default": ""
     },
     "priceMin": {
       "title": "Min Price",
       "type": "integer",
       "description": "Minimum price in RUB",
+      "editor": "number",
       "default": 0
     },
     "priceMax": {
       "title": "Max Price",
       "type": "integer",
       "description": "Maximum price in RUB",
+      "editor": "number",
       "default": 0
     },
     "yearMin": {
       "title": "Min Year",
       "type": "integer",
       "description": "Minimum year e.g. 2020",
+      "editor": "number",
       "default": 0
     },
     "yearMax": {
       "title": "Max Year",
       "type": "integer",
       "description": "Maximum year e.g. 2024",
+      "editor": "number",
       "default": 0
     },
     "city": {
       "title": "City",
       "type": "string",
       "description": "City name or code",
+      "editor": "textfield",
       "default": ""
     },
     "maxPages": {
       "title": "Max Pages",
       "type": "integer",
       "description": "How many search pages to scrape (max 10)",
+      "editor": "number",
       "default": 3
     }
   },
