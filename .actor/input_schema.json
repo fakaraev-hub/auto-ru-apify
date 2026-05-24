@@ -6,19 +6,18 @@
     "mode": {
       "title": "Mode",
       "type": "string",
-      "enum": ["search", "card", "monitor"],
+      "description": "search, card, or monitor",
       "default": "search"
     },
     "searchUrl": {
       "title": "Search URL",
       "type": "string",
-      "editor": "textfield"
+      "default": ""
     },
     "offerUrls": {
-      "title": "Offer URLs",
-      "type": "array",
-      "editor": "json",
-      "default": []
+      "title": "Offer URLs (comma-separated)",
+      "type": "string",
+      "default": ""
     },
     "brand": {
       "title": "Brand",
@@ -59,12 +58,6 @@
       "title": "Max Pages",
       "type": "integer",
       "default": 3
-    },
-    "proxyConfiguration": {
-      "title": "Proxy",
-      "type": "object",
-      "description": "Proxy config — set via Apify UI",
-      "default": { "useApifyProxy": true }
     }
   },
   "required": ["mode"]
