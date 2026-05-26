@@ -1,6 +1,6 @@
 """Monitor mode: track price changes for a list of URLs."""
-from .card import run_card
-from .stealth import random_delay
+from card import run_card
+from stealth import random_delay
 import json
 from datetime import datetime
 

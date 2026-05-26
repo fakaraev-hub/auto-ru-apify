@@ -2,7 +2,7 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from .stealth import create_stealth_context, random_delay
+from stealth import create_stealth_context, random_delay
 
 BASE_URL = "https://auto.ru"
 
