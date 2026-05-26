@@ -8,6 +8,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install --omit=dev
+
 COPY requirements.txt .
 
 # PEP 668 fix: ставим зависимости в venv, а не в системный python
