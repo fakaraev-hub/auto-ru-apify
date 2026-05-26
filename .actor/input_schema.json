@@ -80,6 +80,13 @@
       "description": "How many search pages to scrape (max 10)",
       "editor": "number",
       "default": 3
+    },
+    "proxyUrl": {
+      "title": "Custom Proxy URL",
+      "type": "string",
+      "description": "Optional custom proxy URL (e.g. http://user:pass@host:port)",
+      "editor": "textfield",
+      "default": ""
     }
   },
   "required": ["mode"]

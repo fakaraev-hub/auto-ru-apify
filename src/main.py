@@ -33,7 +33,11 @@ def main():
     
     # Build proxy URL from Apify proxy config
     proxy_url = None
-    if proxy_config.get('useApifyProxy', False):
+    custom_proxy_url = config.get('proxyUrl') or ''
+    if custom_proxy_url:
+        proxy_url = custom_proxy_url
+        print("Using custom proxy URL")
+    elif proxy_config.get('useApifyProxy', False):
         proxy_url = os.environ.get('APIFY_PROXY_URL')
         print(f"Using Apify proxy: {proxy_url[:30]}..." if proxy_url else "No proxy configured")
     
