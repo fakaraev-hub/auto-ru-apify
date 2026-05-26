@@ -16,11 +16,11 @@ def main():
     input_path = os.environ.get('APIFY_INPUT_KEY_VALUE_STORE_PATH', '/tmp/apify_input.json')
     
     # Fallback: read from stdin or file
-    if os.path.exists(input_path):
+    if input_path and os.path.isfile(input_path):
         with open(input_path, 'r') as f:
             config = json.load(f)
     else:
-        # Try reading from APIFY_INPUT env (base64 encoded sometimes)
+        # Try reading from APIFY_INPUT env
         input_data = os.environ.get('APIFY_INPUT', '{}')
         try:
             config = json.loads(input_data)
