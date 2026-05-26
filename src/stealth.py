@@ -25,6 +25,7 @@ def create_stealth_context(proxy_url=None):
     
     browser = p.chromium.launch(
         headless=True,
+        channel="chrome",
         args=args,
         proxy={"server": proxy_url} if proxy_url else None,
     )

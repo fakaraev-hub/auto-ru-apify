@@ -16,8 +16,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Используем системный Chromium из образа
-ENV PLAYWRIGHT_BROWSERS_PATH=0
+# Используем системный Chromium/Chrome из образа
 
 COPY . .
 ENV PYTHONPATH=/usr/src/app/src
