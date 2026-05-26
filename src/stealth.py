@@ -1,7 +1,6 @@
 """Anti-detection layer for auto.ru scraping."""
 import random
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
 
 def create_stealth_context(proxy_url=None):
     """Create a stealth browser context with randomized fingerprint."""
@@ -40,9 +39,8 @@ def create_stealth_context(proxy_url=None):
         color_scheme="light",
     )
     
-    # Apply stealth
+    # Create page
     page = context.new_page()
-    stealth_sync(page)
     
     # Additional anti-detection
     page.add_init_script("""
