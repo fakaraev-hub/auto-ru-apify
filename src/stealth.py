@@ -21,19 +21,21 @@ def create_browser(proxy_url=None):
 def handle_geo_block(page):
     """Detect and dismiss auto.ru geo-restriction page ('Сайт не предназначен для вашего региона').
 
+    The block is an <a id="confirm-button" href="/gdpr/confirm/?retpath=..."> link.
+    We navigate directly to that href instead of simulating a click.
     Returns True if the block was found and dismissed.
     """
     try:
-        btn = page.query_selector('.button_blue, button.button_blue')
-        if btn:
-            text = btn.inner_text(timeout=2000).strip()
-            if 'согласен' in text or 'agree' in text.lower():
-                print("Geo-block detected — clicking 'Я согласен'")
-                btn.click()
-                page.wait_for_load_state('domcontentloaded', timeout=10000)
+        el = page.query_selector('#confirm-button')
+        if el:
+            href = el.get_attribute('href')
+            if href and 'gdpr' in href:
+                print(f"Geo-block detected — navigating to GDPR confirm URL")
+                page.goto(href, wait_until='domcontentloaded', timeout=15000)
+                page.wait_for_load_state('networkidle', timeout=10000)
                 return True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"handle_geo_block error: {e}")
     return False
 
 
