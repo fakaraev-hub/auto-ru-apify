@@ -87,6 +87,13 @@
       "description": "Optional custom proxy URL (e.g. http://user:pass@host:port)",
       "editor": "textfield",
       "default": ""
+    },
+    "debug": {
+      "title": "Debug mode",
+      "type": "boolean",
+      "description": "Save screenshot and raw HTML to KV store for selector debugging",
+      "editor": "checkbox",
+      "default": false
     }
   },
   "required": ["mode"]

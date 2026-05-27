@@ -132,42 +132,43 @@ def parse_card_page(page_content, url):
     
     return card
 
-def run_card(proxy_url, urls):
-    """Run card mode and return parsed cards."""
+def run_card(proxy_url, urls, debug_page=False):
+    """Run card mode. Returns (cards, last_page_ref_or_None)."""
     browser, page = create_browser(proxy_url)
 
     try:
         all_cards = []
-        
+        last_page = None
+
         for url in urls:
             print(f"Parsing: {url}")
-            
+
             for attempt in range(3):
                 try:
-                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    page.goto(url, wait_until='domcontentloaded', timeout=30000)
                     random_delay(1500, 3500)
                     break
                 except Exception as e:
                     print(f"Attempt {attempt+1} failed: {e}")
                     if attempt == 2:
-                        card = {"url": url, "error": str(e)}
-                        all_cards.append(card)
+                        all_cards.append({'url': url, 'error': str(e)})
                         continue
                     random_delay(2000, 5000)
-            
-            # Scroll for lazy content
+
             for _ in range(5):
-                page.evaluate("window.scrollBy(0, window.innerHeight)")
+                page.evaluate('window.scrollBy(0, window.innerHeight)')
                 random_delay(800, 2000)
-            
+
+            last_page = page
             content = page.content()
             card = parse_card_page(content, url)
             all_cards.append(card)
             print(f"Card parsed: {card.get('title', 'N/A')} — {card.get('price', 'N/A')} ₽")
-            
-            random_delay(3000, 6000)  # Be polite between cards
-        
-        return all_cards
-        
+
+            random_delay(3000, 6000)
+
+        return all_cards, (last_page if debug_page else None)
+
     finally:
-        browser.close()
+        if not debug_page:
+            browser.close()

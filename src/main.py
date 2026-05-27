@@ -3,47 +3,80 @@
 import sys
 import os
 import json
+import base64
 
-# Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from apify_client import ApifyClient
 
 from search import run_search
 from card import run_card
 from monitor import run_monitor
 
-def main():
-    # Read Apify input
-    input_path = os.environ.get('APIFY_INPUT_KEY_VALUE_STORE_PATH', '/tmp/apify_input.json')
-    
-    # Fallback: read from stdin or file
-    if input_path and os.path.isfile(input_path):
-        with open(input_path, 'r') as f:
-            config = json.load(f)
+
+def get_apify_client():
+    token = os.environ.get('APIFY_TOKEN') or os.environ.get('APIFY_API_KEY')
+    return ApifyClient(token) if token else None
+
+
+def push_to_dataset(client, items):
+    dataset_id = os.environ.get('APIFY_DEFAULT_DATASET_ID')
+    if client and dataset_id and items:
+        client.dataset(dataset_id).push_items(items)
+        print(f"Pushed {len(items)} items to dataset {dataset_id}")
     else:
-        # Try reading from APIFY_INPUT env
-        input_data = os.environ.get('APIFY_INPUT', '{}')
-        try:
-            config = json.loads(input_data)
-        except:
-            config = {}
-    
-    # Extract config
+        # Fallback: write newline-delimited JSON for local runs
+        for item in items:
+            print('RESULT:' + json.dumps(item, ensure_ascii=False))
+
+
+def save_debug_to_kv(client, page, label='debug'):
+    """Save screenshot + page HTML to Apify KV store for selector debugging."""
+    kv_id = os.environ.get('APIFY_DEFAULT_KEY_VALUE_STORE_ID')
+    if not client or not kv_id:
+        return
+    try:
+        screenshot = page.screenshot(full_page=False)
+        client.key_value_store(kv_id).set_record(
+            key=f'{label}_screenshot',
+            value=screenshot,
+            content_type='image/png',
+        )
+        html = page.content()
+        client.key_value_store(kv_id).set_record(
+            key=f'{label}_html',
+            value=html.encode(),
+            content_type='text/html; charset=utf-8',
+        )
+        print(f"Debug saved to KV store: {label}_screenshot, {label}_html")
+    except Exception as e:
+        print(f"Debug save failed: {e}")
+
+
+def main():
+    input_data = os.environ.get('APIFY_INPUT', '{}')
+    try:
+        config = json.loads(input_data)
+    except Exception:
+        config = {}
+
     mode = config.get('mode', 'search')
-    proxy_config = config.get('proxyConfiguration', {})
-    
-    # Build proxy URL from Apify proxy config
+
     proxy_url = None
     custom_proxy_url = config.get('proxyUrl') or ''
     if custom_proxy_url:
         proxy_url = custom_proxy_url
         print("Using custom proxy URL")
-    elif proxy_config.get('useApifyProxy', False):
-        proxy_url = os.environ.get('APIFY_PROXY_URL')
-        print(f"Using Apify proxy: {proxy_url[:30]}..." if proxy_url else "No proxy configured")
-    
-    # Run based on mode
+    else:
+        proxy_url = os.environ.get('APIFY_PROXY_URL') or None
+        if proxy_url:
+            print(f"Using Apify proxy: {proxy_url[:40]}...")
+
+    client = get_apify_client()
+    debug = config.get('debug', False)
+
     if mode == 'search':
-        results = run_search(
+        results, page_ref = run_search(
             proxy_url=proxy_url,
             search_url=config.get('searchUrl'),
             brand=config.get('brand', ''),
@@ -53,44 +86,42 @@ def main():
             year_min=config.get('yearMin', 0),
             year_max=config.get('yearMax', 0),
             city=config.get('city', ''),
-            max_pages=config.get('maxPages', 3)
+            max_pages=config.get('maxPages', 3),
+            debug_page=debug,
         )
-        
-        # Output to Apify dataset
-        output_path = os.environ.get('APIFY_DEFAULT_DATASET_PATH', '/tmp/output.json')
-        with open(output_path, 'w') as f:
-            for item in results:
-                f.write(json.dumps(item, ensure_ascii=False) + '\n')
-        
-        print(f"Search complete: {len(results)} listings saved")
-        
+        if debug and page_ref:
+            save_debug_to_kv(client, page_ref, 'search')
+        push_to_dataset(client, results)
+        print(f"Search complete: {len(results)} listings")
+
     elif mode == 'card':
         urls = config.get('offerUrls', [])
+        if isinstance(urls, str):
+            urls = [u.strip() for u in urls.replace('\n', ',').split(',') if u.strip()]
         if not urls and config.get('searchUrl'):
             urls = [config['searchUrl']]
-        
-        results = run_card(proxy_url=proxy_url, urls=urls)
-        
-        output_path = os.environ.get('APIFY_DEFAULT_DATASET_PATH', '/tmp/output.json')
-        with open(output_path, 'w') as f:
-            for item in results:
-                f.write(json.dumps(item, ensure_ascii=False) + '\n')
-        
-        print(f"Card parsing complete: {len(results)} cards saved")
-        
+
+        results, page_ref = run_card(proxy_url=proxy_url, urls=urls, debug_page=debug)
+        if debug and page_ref:
+            save_debug_to_kv(client, page_ref, 'card')
+        push_to_dataset(client, results)
+        print(f"Card parsing complete: {len(results)} cards")
+
     elif mode == 'monitor':
         urls = config.get('offerUrls', [])
-        result = run_monitor(proxy_url=proxy_url, urls=urls)
-        
-        output_path = os.environ.get('APIFY_DEFAULT_DATASET_PATH', '/tmp/output.json')
-        with open(output_path, 'w') as f:
-            f.write(json.dumps(result, ensure_ascii=False) + '\n')
-        
+        if isinstance(urls, str):
+            urls = [u.strip() for u in urls.replace('\n', ',').split(',') if u.strip()]
+
+        result, page_ref = run_monitor(proxy_url=proxy_url, urls=urls, debug_page=debug)
+        if debug and page_ref:
+            save_debug_to_kv(client, page_ref, 'monitor')
+        push_to_dataset(client, [result])
         print(f"Monitor complete: {result['successful']}/{result['total_urls']} URLs checked")
-    
+
     else:
         print(f"Unknown mode: {mode}")
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
