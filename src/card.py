@@ -145,7 +145,7 @@ def run_card(proxy_url, urls, debug_page=False):
 
             for attempt in range(3):
                 try:
-                    page.goto(url, wait_until='domcontentloaded', timeout=30000)
+                    page.goto(url, wait_until='domcontentloaded', timeout=60000)
                     random_delay(1000, 2000)
                     handle_geo_block(page)
                     random_delay(500, 1500)

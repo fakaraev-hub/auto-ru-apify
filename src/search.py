@@ -31,104 +31,89 @@ def build_search_url(brand, model, price_min, price_max, year_min, year_max, cit
 
 
 def parse_listing_item(item):
-    """Extract listing data from a single card element (BeautifulSoup tag)."""
+    """Extract listing data from a single card element (BeautifulSoup tag).
+
+    Selectors verified 2026-05-27 against live auto.ru HTML (CloakBrowser + Apify Residential RU).
+    Card container: div.ListingItemUniversal-* (dash suffix, not double-underscore children).
+    """
     listing = {}
 
-    # Title — try multiple selector patterns
-    for sel in [
-        lambda e: e.find('a', class_=re.compile(r'ListingItemTitle|listingItem.*title', re.I)),
-        lambda e: e.find('h3'),
-        lambda e: e.find('a', {'data-auto': re.compile(r'title|name', re.I)}),
-    ]:
-        el = sel(item)
-        if el:
-            listing['title'] = el.get_text(strip=True)
-            href = el.get('href', '')
-            if href:
-                listing['url'] = href if href.startswith('http') else BASE_URL + href
-            break
+    # Title + URL — BEM class ListingItemTitle__link is stable
+    title_el = item.find('a', class_=re.compile(r'ListingItemTitle__link'))
+    if title_el:
+        listing['title'] = title_el.get_text(strip=True)
+        href = title_el.get('href', '')
+        if href:
+            listing['url'] = href if href.startswith('http') else BASE_URL + href
 
-    # Price
-    for sel in [
-        lambda e: e.find(class_=re.compile(r'ListingItemPrice|price', re.I)),
-        lambda e: e.find(attrs={'data-auto': re.compile(r'price', re.I)}),
-    ]:
-        el = sel(item)
-        if el:
-            price_text = el.get_text(strip=True)
-            digits = re.findall(r'[\d\s]+', price_text)
-            if digits:
-                listing['price_raw'] = price_text
-                try:
-                    listing['price'] = int(''.join(digits[0].split()))
-                except ValueError:
-                    pass
-            break
+    # Price — ListingItemUniversal__price-* (strip trailing "Справедливая цена" text)
+    price_el = item.find(class_=re.compile(r'ListingItemUniversal__price'))
+    if price_el:
+        price_text = price_el.get_text(strip=True)
+        digits = re.findall(r'[\d\s]+', price_text)
+        if digits:
+            listing['price_raw'] = price_text
+            try:
+                listing['price'] = int(''.join(digits[0].split()))
+            except ValueError:
+                pass
 
-    # Year
-    for sel in [
-        lambda e: e.find(class_=re.compile(r'Year|year', re.I)),
-        lambda e: e.find(attrs={'data-auto': 'year'}),
-    ]:
-        el = sel(item)
-        if el:
-            m = re.search(r'\d{4}', el.get_text())
-            if m:
-                listing['year'] = int(m.group())
-            break
+    # Year — Typography2__h5 contains the 4-digit year
+    year_el = item.find(class_=re.compile(r'Typography2__h5'))
+    if year_el:
+        m = re.search(r'\b(19|20)\d{2}\b', year_el.get_text())
+        if m:
+            listing['year'] = int(m.group())
 
-    # Mileage
-    for sel in [
-        lambda e: e.find(class_=re.compile(r'KmAge|mileage|km', re.I)),
-        lambda e: e.find(attrs={'data-auto': re.compile(r'mileage|km', re.I)}),
-    ]:
-        el = sel(item)
-        if el:
-            text = el.get_text(strip=True)
-            digits = re.findall(r'[\d\s]+', text)
-            if digits:
-                listing['mileage_raw'] = text
-                try:
-                    listing['mileage_km'] = int(''.join(digits[0].split()))
-                except ValueError:
-                    pass
-            break
+    # Mileage — ListingItemUniversalCondition__status contains "N *** км"
+    mileage_el = item.find(class_=re.compile(r'ListingItemUniversalCondition__status'))
+    if mileage_el:
+        text = mileage_el.get_text(strip=True)
+        digits = re.findall(r'[\d\s]+', text)
+        if digits:
+            listing['mileage_raw'] = text
+            try:
+                listing['mileage_km'] = int(''.join(digits[0].split()))
+            except ValueError:
+                pass
 
-    # Location
-    for sel in [
-        lambda e: e.find(class_=re.compile(r'MetroList|location|Location', re.I)),
-        lambda e: e.find(attrs={'data-auto': re.compile(r'location|metro', re.I)}),
-    ]:
-        el = sel(item)
-        if el:
-            listing['location'] = el.get_text(strip=True)
-            break
+    # Location — MetroListPlace__regionName holds city name
+    loc_el = item.find(class_=re.compile(r'MetroListPlace__regionName'))
+    if loc_el:
+        listing['location'] = loc_el.get_text(strip=True)
 
-    # Seller type
-    dealer_el = item.find(class_=re.compile(r'salon|dealer|Salon|Dealer', re.I))
+    # Seller name
+    seller_el = item.find(class_=re.compile(r'ListingItemUniversalSeller__sellerName'))
+    if seller_el:
+        listing['seller_name'] = seller_el.get_text(strip=True)
+
+    # Dealer flag — SalonVerifiedLabel appears only on verified dealers
+    dealer_el = item.find(class_=re.compile(r'SalonVerifiedLabel|ListingItemUniversalSeller__salonVerified'))
     listing['seller_type'] = 'dealer' if dealer_el else 'private'
 
     return listing if listing.get('title') or listing.get('price') else None
 
 
 def find_listing_items(soup):
-    """Try multiple strategies to find listing card elements."""
-    # Strategy 1: class contains 'ListingItem'
-    items = soup.find_all('div', class_=re.compile(r'ListingItem'))
-    if items:
-        return items, 'class~ListingItem'
+    """Find listing card container elements.
 
-    # Strategy 2: data-auto=listingItem
+    Selectors verified 2026-05-27. Strategy order: most specific first.
+    Each card root has class ListingItemUniversal-<hash> (dash, not __),
+    which differs from child elements using ListingItemUniversal__<block>-<hash>.
+    """
+    # Strategy 1: ListingItemUniversal-* root containers (verified primary selector)
+    items = [el for el in soup.find_all('div') if any(
+        re.match(r'^ListingItemUniversal-', c) for c in el.get('class', [])
+    )]
+    if items:
+        return items, 'ListingItemUniversal-root'
+
+    # Strategy 2: data-auto=listingItem fallback
     items = soup.find_all(attrs={'data-auto': 'listingItem'})
     if items:
         return items, 'data-auto=listingItem'
 
-    # Strategy 3: data-auto contains 'snippet' or 'item'
-    items = soup.find_all(attrs={'data-auto': re.compile(r'snippet|listing', re.I)})
-    if items:
-        return items, 'data-auto~snippet'
-
-    # Strategy 4: article tags
+    # Strategy 3: article tags fallback
     items = soup.find_all('article')
     if items:
         return items, 'article'
@@ -167,7 +152,7 @@ def run_search(proxy_url, search_url=None, brand='', model='', price_min=0, pric
 
             for attempt in range(3):
                 try:
-                    page.goto(page_url, wait_until='domcontentloaded', timeout=30000)
+                    page.goto(page_url, wait_until='domcontentloaded', timeout=60000)
                     random_delay(1000, 2000)
                     handle_geo_block(page)
                     random_delay(500, 1000)
@@ -193,7 +178,11 @@ def run_search(proxy_url, search_url=None, brand='', model='', price_min=0, pric
                 print(f"  Page title: {page.title()}")
                 break
 
-            all_listings.extend(listings)
+            # Deduplicate by URL within this batch before extending
+            seen_urls = {l['url'] for l in all_listings if l.get('url')}
+            new_listings = [l for l in listings if l.get('url') not in seen_urls or not l.get('url')]
+            print(f"  Unique new: {len(new_listings)} (filtered {len(listings)-len(new_listings)} dupes)")
+            all_listings.extend(new_listings)
 
             # Next page
             next_btn = page.query_selector('[class*="ListingPagination__next"], [data-auto="pagination-next"]')

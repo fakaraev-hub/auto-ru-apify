@@ -81,10 +81,17 @@
       "editor": "number",
       "default": 3
     },
+    "proxyConfiguration": {
+      "title": "Proxy Configuration",
+      "type": "object",
+      "description": "Apify proxy or custom proxy settings",
+      "editor": "proxy",
+      "default": { "useApifyProxy": true }
+    },
     "proxyUrl": {
-      "title": "Custom Proxy URL",
+      "title": "Custom Proxy URL (override)",
       "type": "string",
-      "description": "Optional custom proxy URL (e.g. http://user:pass@host:port)",
+      "description": "Override proxy URL directly (e.g. http://user:pass@host:port). Takes precedence over proxyConfiguration.",
       "editor": "textfield",
       "default": ""
     },
