@@ -143,19 +143,22 @@ def run_card(proxy_url, urls, debug_page=False):
         for url in urls:
             print(f"Parsing: {url}")
 
-            for attempt in range(3):
+            for attempt in range(5):
                 try:
                     page.goto(url, wait_until='domcontentloaded', timeout=60000)
+                    final_url = page.url
+                    if not final_url.startswith('https://') or 'chrome-error' in final_url:
+                        raise Exception(f"Bad URL after navigation: {final_url}")
                     random_delay(1000, 2000)
                     handle_geo_block(page)
                     random_delay(500, 1500)
                     break
                 except Exception as e:
                     print(f"Attempt {attempt+1} failed: {e}")
-                    if attempt == 2:
+                    if attempt == 4:
                         all_cards.append({'url': url, 'error': str(e)})
                         continue
-                    random_delay(2000, 5000)
+                    random_delay(3000, 7000)
 
             for _ in range(5):
                 page.evaluate('window.scrollBy(0, window.innerHeight)')

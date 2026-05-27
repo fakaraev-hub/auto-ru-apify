@@ -150,18 +150,21 @@ def run_search(proxy_url, search_url=None, brand='', model='', price_min=0, pric
         for page_num in range(1, max_pages + 1):
             page_url = f"{url}&page={page_num}" if page_num > 1 else url
 
-            for attempt in range(3):
+            for attempt in range(5):
                 try:
                     page.goto(page_url, wait_until='domcontentloaded', timeout=60000)
+                    final_url = page.url
+                    if not final_url.startswith('https://') or 'chrome-error' in final_url:
+                        raise Exception(f"Bad URL after navigation: {final_url}")
                     random_delay(1000, 2000)
                     handle_geo_block(page)
                     random_delay(500, 1000)
                     break
                 except Exception as e:
                     print(f"Attempt {attempt+1} failed: {e}")
-                    if attempt == 2:
+                    if attempt == 4:
                         raise
-                    random_delay(2000, 5000)
+                    random_delay(3000, 7000)
 
             # Scroll to trigger lazy loading
             for _ in range(3):
