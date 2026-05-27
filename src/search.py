@@ -148,7 +148,8 @@ def run_search(proxy_url, search_url=None, brand='', model='', price_min=0, pric
         last_page = None
 
         for page_num in range(1, max_pages + 1):
-            page_url = f"{url}&page={page_num}" if page_num > 1 else url
+            sep = '&' if '?' in url else '?'
+            page_url = f"{url}{sep}page={page_num}" if page_num > 1 else url
 
             for attempt in range(5):
                 try:
