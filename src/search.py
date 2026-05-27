@@ -2,7 +2,7 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from stealth import create_stealth_context, random_delay
+from stealth import create_browser, random_delay
 
 BASE_URL = "https://auto.ru"
 
@@ -103,8 +103,8 @@ def parse_search_page(page_content):
 def run_search(proxy_url, search_url=None, brand="", model="", price_min=0, price_max=0, 
                year_min=0, year_max=0, city="", max_pages=3):
     """Run search mode and return listings."""
-    p, browser, context, page = create_stealth_context(proxy_url)
-    
+    browser, page = create_browser(proxy_url)
+
     try:
         # Build URL
         url = search_url or build_search_url(brand, model, price_min, price_max, year_min, year_max, city)
@@ -151,6 +151,4 @@ def run_search(proxy_url, search_url=None, brand="", model="", price_min=0, pric
         return all_listings
         
     finally:
-        context.close()
         browser.close()
-        p.stop()

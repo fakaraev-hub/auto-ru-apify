@@ -1,5 +1,4 @@
-playwright==1.55.0
+cloakbrowser==0.3.28
 apify-client==1.8.0
 beautifulsoup4==4.12.3
 lxml==5.2.2
-playwright-stealth==1.0.6

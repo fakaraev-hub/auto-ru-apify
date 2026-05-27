@@ -2,7 +2,7 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from stealth import create_stealth_context, random_delay
+from stealth import create_browser, random_delay
 
 BASE_URL = "https://auto.ru"
 
@@ -134,8 +134,8 @@ def parse_card_page(page_content, url):
 
 def run_card(proxy_url, urls):
     """Run card mode and return parsed cards."""
-    p, browser, context, page = create_stealth_context(proxy_url)
-    
+    browser, page = create_browser(proxy_url)
+
     try:
         all_cards = []
         
@@ -170,6 +170,4 @@ def run_card(proxy_url, urls):
         return all_cards
         
     finally:
-        context.close()
         browser.close()
-        p.stop()
