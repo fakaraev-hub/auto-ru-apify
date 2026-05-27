@@ -2,7 +2,7 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from stealth import create_browser, random_delay
+from stealth import create_browser, random_delay, handle_geo_block
 
 BASE_URL = "https://auto.ru"
 
@@ -168,7 +168,9 @@ def run_search(proxy_url, search_url=None, brand='', model='', price_min=0, pric
             for attempt in range(3):
                 try:
                     page.goto(page_url, wait_until='domcontentloaded', timeout=30000)
-                    random_delay(1000, 3000)
+                    random_delay(1000, 2000)
+                    handle_geo_block(page)
+                    random_delay(500, 1000)
                     break
                 except Exception as e:
                     print(f"Attempt {attempt+1} failed: {e}")

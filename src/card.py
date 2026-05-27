@@ -2,7 +2,7 @@
 import re
 import json
 from bs4 import BeautifulSoup
-from stealth import create_browser, random_delay
+from stealth import create_browser, random_delay, handle_geo_block
 
 BASE_URL = "https://auto.ru"
 
@@ -146,7 +146,9 @@ def run_card(proxy_url, urls, debug_page=False):
             for attempt in range(3):
                 try:
                     page.goto(url, wait_until='domcontentloaded', timeout=30000)
-                    random_delay(1500, 3500)
+                    random_delay(1000, 2000)
+                    handle_geo_block(page)
+                    random_delay(500, 1500)
                     break
                 except Exception as e:
                     print(f"Attempt {attempt+1} failed: {e}")
